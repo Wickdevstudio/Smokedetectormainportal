@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>API Monitoring Dashboard</title>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+body{
+    background:#0f172a;
+    color:white;
+    font-family:Arial,sans-serif;
+}
+
+.container{
+    width:95%;
+    max-width:1200px;
+    margin:auto;
+    padding:20px;
+}
+
+h1{
+    text-align:center;
+    margin-bottom:20px;
+}
+
+.grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+    gap:15px;
+}
+
+.card{
+    background:#1e293b;
+    border-radius:15px;
+    padding:20px;
+    text-align:center;
+}
+
+.value{
+    font-size:32px;
+    font-weight:bold;
+    margin-top:10px;
+}
+
+.online{
+    color:#22c55e;
+}
+
+.chart-box{
+    margin-top:20px;
+    background:#1e293b;
+    border-radius:15px;
+    padding:20px;
+}
+
+canvas{
+    width:100% !important;
+    height:400px !important;
+}
+
+.footer{
+    text-align:center;
+    margin-top:15px;
+    color:#94a3b8;
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+
+<h1>🚀 API Monitoring Dashboard</h1>
+
+<div class="grid">
+
+<div class="card">
+<h3>API Status</h3>
+<div class="value online">ONLINE</div>
+</div>
+
+<div class="card">
+<h3>CPU Usage</h3>
+<div class="value" id="cpu">0%</div>
+</div>
+
+<div class="card">
+<h3>RAM Usage</h3>
+<div class="value" id="ram">0%</div>
+</div>
+
+<div class="card">
+<h3>Requests/min</h3>
+<div class="value" id="req">0</div>
+</div>
+
+</div>
+
+<div class="chart-box">
+<h2>Live API Requests</h2>
+<canvas id="chart"></canvas>
+</div>
+
+<div class="footer">
+Last Update:
+<span id="time"></span>
+</div>
+
+</div>
+
+<script>
+
+const ctx = document.getElementById("chart");
+
+const chart = new Chart(ctx,{
+    type:"line",
+    data:{
+        labels:[],
+        datasets:[{
+            label:"Requests",
+            data:[],
+            borderWidth:3,
+            tension:0.4
+        }]
+    },
+    options:{
+        responsive:true,
+        animation:false
+    }
+});
+
+function updateDashboard(){
+
+    const cpu=Math.floor(Math.random()*40)+20;
+    const ram=Math.floor(Math.random()*50)+30;
+    const req=Math.floor(Math.random()*500)+100;
+
+    document.getElementById("cpu").innerText=cpu+"%";
+    document.getElementById("ram").innerText=ram+"%";
+    document.getElementById("req").innerText=req;
+
+    const time=new Date().toLocaleTimeString();
+
+    document.getElementById("time").innerText=time;
+
+    chart.data.labels.push(time);
+    chart.data.datasets[0].data.push(req);
+
+    if(chart.data.labels.length>20){
+        chart.data.labels.shift();
+        chart.data.datasets[0].data.shift();
+    }
+
+    chart.update();
+}
+
+updateDashboard();
+setInterval(updateDashboard,1000);
+
+</script>
+
+</body>
+</html>
