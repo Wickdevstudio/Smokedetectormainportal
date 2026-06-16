@@ -1,228 +1,45 @@
 <!DOCTYPE html>
-
 <html lang="th">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>API Status Monitor</title>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-<style>
-body{
-background:#0f172a;
-color:white;
-font-family:Arial,sans-serif;
-margin:0;
-padding:20px;
-}
-
-.container{
-max-width:1200px;
-margin:auto;
-}
-
-h1{
-text-align:center;
-}
-
-.status{
-font-size:42px;
-font-weight:bold;
-text-align:center;
-margin:20px;
-}
-
-.online{
-color:#22c55e;
-}
-
-.down{
-color:#ef4444;
-}
-
-.card{
-background:#1e293b;
-padding:20px;
-border-radius:15px;
-margin-top:15px;
-}
-
-.log{
-height:250px;
-overflow-y:auto;
-background:#111827;
-padding:10px;
-border-radius:10px;
-font-size:14px;
-}
-</style>
-
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Responsive Dashboard</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
+  <aside class="sidebar">
+    <h2>Dashboard</h2>
+    <ul>
+      <li>🏠 หน้าแรก</li>
+      <li>📊 สถิติ</li>
+      <li>👤 ผู้ใช้</li>
+      <li>⚙️ ตั้งค่า</li>
+    </ul>
+  </aside>
 
-<div class="container">
+  <main class="main">
+    <header>
+      <button id="menuBtn">☰</button>
+      <h1>แดชบอร์ด</h1>
+      <button id="themeBtn">🌙</button>
+    </header>
 
-<h1>🚀 API Status Dashboard</h1>
+    <section class="cards">
+      <div class="card">
+        <h3>ผู้ใช้งาน</h3>
+        <p>1,245</p>
+      </div>
+      <div class="card">
+        <h3>ยอดขาย</h3>
+        <p>฿52,300</p>
+      </div>
+      <div class="card">
+        <h3>คำสั่งซื้อ</h3>
+        <p>320</p>
+      </div>
+    </section>
+  </main>
 
-<div id="status" class="status online">
-● ONLINE
-</div>
-
-<div class="card">
-<canvas id="chart"></canvas>
-</div>
-
-<div class="card">
-<h3>Activity Log</h3>
-<div id="log" class="log"></div>
-</div>
-
-</div>
-
-<script>
-
-const WEBHOOKS = [
-"https://discord.com/api/webhooks/1516070816872399030/o5zm3gtaGL5XByo5mC7sIXF6Q1qhObh6_6yyLlJj1N6lStB26M6m72XdnhXIq5PWFebs",
-"https://discord.com/api/webhooks/1516070820361932800/WaRwx5Xlfk4XYmF69hTRdSUd9jpPZJ0a4eYbIz17I_HSJf0bC6RlGYbcpwjdka2EQnJp",
-"https://discord.com/api/webhooks/1516070829409042443/MLccQZm0L7sExVFSxrLyP5Ze2fJv3OPWbDPZoSy2916IKfSIY-SkaUUHWXzydyGqOaus",
-"https://discord.com/api/webhooks/1516070835126013983/E-1edB56ROplcEkLpVRxeXZJQBoYuopTry52tGEbgM0vnMaH0hMz8hE5k2xhaYMKBQv3",
-"https://discord.com/api/webhooks/1516070841035784324/yYGpxIrt8yQV1yQQRJvLNd0Q5_ruPUiwJawYcsbFjOcpL8lK8H5Zd9uI1Vkoq-bGaPbN"
-];
-
-let lastStatus = "ONLINE";
-
-const ctx = document.getElementById('chart');
-
-const chart = new Chart(ctx,{
-type:'line',
-data:{
-labels:[],
-datasets:[{
-label:'Response Time (ms)',
-data:[],
-borderWidth:3,
-tension:0.4
-}]
-},
-options:{
-responsive:true,
-animation:false
-}
-});
-
-function addLog(msg){
-const log=document.getElementById("log");
-
-log.innerHTML=
-`[${new Date().toLocaleTimeString()}] ${msg}<br>`+
-log.innerHTML;
-}
-
-async function sendDiscord(status,responseTime){
-
-const payload={
-embeds:[{
-title:"API Monitor",
-description:`Status: ${status}`,
-color:status==="ONLINE"
-?5763719
-:15548997,
-fields:[
-{
-name:"Response Time",
-value:`${responseTime} ms`,
-inline:true
-},
-{
-name:"Timestamp",
-value:new Date().toLocaleString(),
-inline:true
-}
-]
-}]
-};
-
-for(const webhook of WEBHOOKS){
-
-if(!webhook.startsWith("https")) continue;
-
-try{
-await fetch(webhook,{
-method:"POST",
-headers:{
-"Content-Type":"application/json"
-},
-body:JSON.stringify(payload)
-});
-}catch(err){
-console.error(err);
-}
-}
-}
-
-async function checkStatus(){
-
-const responseTime =
-Math.floor(Math.random()*300)+50;
-
-const online =
-Math.random() > 0.15;
-
-const status =
-online ? "ONLINE" : "DOWN";
-
-const statusDiv =
-document.getElementById("status");
-
-statusDiv.innerHTML =
-online ? "● ONLINE" : "● DOWN";
-
-statusDiv.className =
-online ? "status online" : "status down";
-
-chart.data.labels.push(
-new Date().toLocaleTimeString()
-);
-
-chart.data.datasets[0].data.push(
-responseTime
-);
-
-if(chart.data.labels.length > 20){
-chart.data.labels.shift();
-chart.data.datasets[0].data.shift();
-}
-
-chart.update();
-
-addLog(
-`${status} (${responseTime} ms)`
-);
-
-if(status !== lastStatus){
-
-sendDiscord(
-status,
-responseTime
-);
-
-lastStatus = status;
-
-addLog(
-`Discord notification sent`
-);
-}
-
-}
-
-checkStatus();
-
-setInterval(
-checkStatus,
-5000
-);
-
-</script>
-
+  <script src="script.js"></script>
 </body>
 </html>
