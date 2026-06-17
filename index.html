@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gas Monitor</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    body { font-family: 'Prompt', sans-serif; text-align: center; background: #0a0a0a; color: #0f0; }
+    .alert { color: red; font-size: 2em; animation: blink 0.8s infinite; }
+    @keyframes blink { 50% { opacity: 0.3; } }
+  </style>
+</head>
+<body>
+  <h1>🛡️ ระบบตรวจจับแก๊ส MQ-2</h1>
+  <button onclick="login()">🔑 ล็อกอินด้วย Google</button>
+  <div id="status">รอข้อมูล...</div>
+
+  <script>
+    const supabase = Supabase.createClient('https://your-project.supabase.co', 'YOUR_ANON_KEY');
+
+    async function login() {
+      supabase.auth.signInWithOAuth({ provider: 'google' });
+    }
+
+    supabase.channel('realtime-sensor')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'sensor_data' }, (payload) => {
+        const d = payload.new;
+        let html = `<h2>ค่าปัจจุบัน: ${d.ppm} ppm</h2>`;
+        if (d.ppm > 400) {
+          html += `<p class="alert">⚠️ พบแก๊สอันตราย! ส่ง Line แล้ว</p>`;
+          sendLine(d.ppm);
+        }
+        document.getElementById('status').innerHTML = html;
+      })
+      .subscribe();
+  </script>
+
+  <script>
+    async function sendLine(ppm) {
+      await fetch('/.netlify/functions/send-line', {
+        method: 'POST',
+        body: JSON.stringify({ ppm })
+      });
+    }
+  </script>
+</body>
+</html>
